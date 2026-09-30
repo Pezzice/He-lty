@@ -2,8 +2,8 @@
 import { useState } from "react";
 import { Scheda } from "@/components/Scheda";
 import { useProfilo } from "@/lib/archivio";
-import { ETICHETTE_ATTIVITA, bmr, fabbisognoKcal, obiettivoAcquaMl, obiettivoPassi, proteineG } from "@/lib/calcoli";
-import type { LivelloAttivita, Profilo, Sesso } from "@/lib/types";
+import { ETICHETTE_ATTIVITA, ETICHETTE_CONDIZIONE, ETICHETTE_OBIETTIVO, bmr, liquidiDalMedico, fabbisognoKcal, obiettivoAcquaMl, obiettivoPassi, proteineG } from "@/lib/calcoli";
+import type { Condizione, LivelloAttivita, Obiettivo, Profilo, Sesso } from "@/lib/types";
 
 function num(v: string): number | null {
   const n = Number(v.replace(",", "."));
@@ -51,6 +51,11 @@ export default function PaginaProfilo() {
               {Object.entries(ETICHETTE_ATTIVITA).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </label>
+          <label className="col-span-2">Obiettivo
+            <select value={profilo.obiettivo} onChange={(e) => set("obiettivo", e.target.value as Obiettivo)}>
+              {Object.entries(ETICHETTE_OBIETTIVO).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            </select>
+          </label>
         </div>
       </Scheda>
 
@@ -64,6 +69,13 @@ export default function PaginaProfilo() {
           ] as const).map(([k, etichetta]) => (
             <label key={k} className="flex items-start gap-2">
               <input type="checkbox" className="mt-1" checked={profilo[k]} onChange={(e) => set(k, e.target.checked)} />
+              {etichetta}
+            </label>
+          ))}
+          {(Object.entries(ETICHETTE_CONDIZIONE) as [Condizione, string][]).map(([c, etichetta]) => (
+            <label key={c} className="flex items-start gap-2">
+              <input type="checkbox" className="mt-1" checked={profilo.condizioni.includes(c)}
+                onChange={(e) => set("condizioni", e.target.checked ? [...profilo.condizioni, c] : profilo.condizioni.filter((x) => x !== c))} />
               {etichetta}
             </label>
           ))}
@@ -94,7 +106,7 @@ export default function PaginaProfilo() {
         <dl className="grid grid-cols-2 gap-y-2 text-sm">
           {metabolismo && kcal && (<><dt className="text-muted">Metabolismo basale</dt><dd>{metabolismo} kcal</dd>
             <dt className="text-muted">Fabbisogno stimato</dt><dd>{kcal} kcal</dd></>)}
-          <dt className="text-muted">Acqua da bevande</dt><dd>{acqua ? `${acqua} ml` : profilo.restrizioneLiquidi ? "limite del medico" : "–"}</dd>
+          <dt className="text-muted">Acqua da bevande</dt><dd>{acqua ? `${acqua} ml` : liquidiDalMedico(profilo) ? "secondo il medico" : "–"}</dd>
           <dt className="text-muted">Proteine</dt><dd>{proteine ? `${proteine} g` : "–"}</dd>
           <dt className="text-muted">Passi</dt><dd>{obiettivoPassi(profilo)}</dd>
           <dt className="text-muted">Attività moderata</dt><dd>150 min a settimana</dd>

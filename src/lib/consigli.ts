@@ -3,6 +3,7 @@
 import {
   MINUTI_ATTIVITA_GIORNO,
   eta,
+  liquidiDalMedico,
   obiettivoAcquaMl,
   obiettivoPassi,
   profiloCompleto,
@@ -28,10 +29,10 @@ export function consigliDelGiorno(p: Profilo, g: GiornoDiario, ora = new Date())
   }
 
   const acqua = obiettivoAcquaMl(p);
-  if (p.restrizioneLiquidi) {
+  if (liquidiDalMedico(p)) {
     out.push({
       area: "idratazione",
-      testo: "Hai indicato una restrizione di liquidi: segui il limite indicato dal tuo medico.",
+      testo: "Per la tua situazione la quantità di liquidi la decide il medico: segui il suo limite.",
       fonte: "knowledge/02-idratazione",
     });
   } else if (acqua) {
@@ -78,6 +79,14 @@ export function consigliDelGiorno(p: Profilo, g: GiornoDiario, ora = new Date())
       area: "integratori",
       testo: `Non hai segnato: ${mancanti.join(", ")}.`,
       fonte: "",
+    });
+  }
+
+  if (p.condizioni.includes("anticoagulanti") && p.integratori.length > 0) {
+    out.push({
+      area: "integratori",
+      testo: "Prendendo anticoagulanti, chiedi al medico o al farmacista se i tuoi integratori sono compatibili: alcuni, soprattutto a base di erbe, interferiscono.",
+      fonte: "knowledge/06-farmaci/interazioni.md",
     });
   }
 

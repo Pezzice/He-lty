@@ -4,6 +4,7 @@ Prototipo web (PWA) di HE@LTY: raccoglie i dati giornalieri su acqua, pasti, mov
 
 ## Cosa c'è ora
 
+- **Benvenuto** (al primo avvio): nome, anno di nascita, sesso, peso, altezza, attività, obiettivo, condizioni di salute, integratori e consenso ai dati sanitari, un passo alla volta.
 - **Oggi**: acqua con obiettivo personale, minuti di attività e passi, pasti con calorie facoltative, ore di sonno, integratori da spuntare, suggerimenti del giorno con la fonte.
 - **Profilo**: dati di base, situazioni particolari (gravidanza, limite di liquidi, disturbi alimentari) che cambiano o nascondono i suggerimenti, obiettivi calcolati.
 - **Storico**: ultimi 7 giorni e minuti di attività della settimana.

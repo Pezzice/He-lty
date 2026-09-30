@@ -1,9 +1,10 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Barra, Scheda } from "@/components/Scheda";
 import { oggiISO, useDiario, useProfilo } from "@/lib/archivio";
-import { MINUTI_ATTIVITA_GIORNO, fabbisognoKcal, obiettivoAcquaMl, obiettivoPassi, proteineG } from "@/lib/calcoli";
+import { MINUTI_ATTIVITA_GIORNO, benvenutoCompletato, fabbisognoKcal, obiettivoAcquaMl, obiettivoPassi, proteineG } from "@/lib/calcoli";
 import { SEGNALI_ALLARME, consigliDelGiorno } from "@/lib/consigli";
 
 function numero(v: string): number | null {
@@ -16,8 +17,14 @@ export default function Oggi() {
   const { giorno, aggiorna, pronto: diarioPronto } = useDiario();
   const [allarme, setAllarme] = useState(false);
   const [pasto, setPasto] = useState({ descrizione: "", kcal: "" });
+  const router = useRouter();
+  const daAccogliere = profiloPronto && !benvenutoCompletato(profilo);
 
-  if (!profiloPronto || !diarioPronto) return null;
+  useEffect(() => {
+    if (daAccogliere) router.replace("/benvenuto");
+  }, [daAccogliere, router]);
+
+  if (!profiloPronto || !diarioPronto || daAccogliere) return null;
 
   const data = oggiISO();
   const g = giorno(data);

@@ -1,5 +1,5 @@
 // Calcoli basati sulla base di conoscenza del progetto (knowledge/).
-import type { LivelloAttivita, Profilo } from "./types";
+import type { Condizione, LivelloAttivita, Obiettivo, Profilo } from "./types";
 
 // PAL indicativi LARN/EFSA (knowledge/01-nutrizione/fabbisogni.md)
 const PAL: Record<LivelloAttivita, number> = {
@@ -16,12 +16,38 @@ export const ETICHETTE_ATTIVITA: Record<LivelloAttivita, string> = {
   molto_attivo: "Molto attivo",
 };
 
+export const ETICHETTE_OBIETTIVO: Record<Obiettivo, string> = {
+  benessere: "Stare bene in generale",
+  peso: "Raggiungere un peso sano",
+  forma: "Migliorare la forma fisica",
+  sonno_energia: "Dormire meglio e avere più energia",
+};
+
+// Profili speciali di knowledge/08-sicurezza/regole-app.md, sezione 2.
+export const ETICHETTE_CONDIZIONE: Record<Condizione, string> = {
+  diabete_farmaci: "Diabete con farmaci per la glicemia",
+  ipertensione: "Pressione alta",
+  renale: "Malattia renale cronica",
+  scompenso: "Scompenso cardiaco",
+  anticoagulanti: "Prendo anticoagulanti",
+};
+
+/** Condizioni in cui i liquidi li decide il medico: niente obiettivo d'acqua. */
+export function liquidiDalMedico(p: Profilo): boolean {
+  return p.restrizioneLiquidi || p.condizioni.includes("renale") || p.condizioni.includes("scompenso");
+}
+
 export function eta(p: Profilo, oggi = new Date()): number | null {
   return p.annoNascita ? oggi.getFullYear() - p.annoNascita : null;
 }
 
 export function profiloCompleto(p: Profilo): boolean {
-  return Boolean(p.annoNascita && p.sesso && p.pesoKg && p.altezzaCm);
+  return Boolean(p.nome.trim() && p.annoNascita && p.sesso && p.pesoKg && p.altezzaCm);
+}
+
+/** Il benvenuto è finito quando ci sono i dati di base e il consenso. */
+export function benvenutoCompletato(p: Profilo): boolean {
+  return profiloCompleto(p) && p.consensoAt !== null;
 }
 
 /** Metabolismo basale, Mifflin-St Jeor. */
@@ -48,7 +74,7 @@ export function fabbisognoKcal(p: Profilo): number | null {
  * +300 ml in gravidanza. Null con restrizione di liquidi prescritta dal medico.
  */
 export function obiettivoAcquaMl(p: Profilo): number | null {
-  if (p.restrizioneLiquidi) return null;
+  if (liquidiDalMedico(p)) return null;
   let ml: number;
   if (p.pesoKg) ml = p.pesoKg * 30;
   else if (p.sesso) ml = p.sesso === "M" ? 2000 : 1600;

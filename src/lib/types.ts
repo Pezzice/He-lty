@@ -1,5 +1,7 @@
 export type Sesso = "M" | "F";
 export type LivelloAttivita = "sedentario" | "moderato" | "attivo" | "molto_attivo";
+export type Obiettivo = "benessere" | "peso" | "forma" | "sonno_energia";
+export type Condizione = "diabete_farmaci" | "renale" | "scompenso" | "anticoagulanti" | "ipertensione";
 
 export interface Profilo {
   nome: string;
@@ -8,11 +10,15 @@ export interface Profilo {
   pesoKg: number | null;
   altezzaCm: number | null;
   attivita: LivelloAttivita;
+  obiettivo: Obiettivo;
+  condizioni: Condizione[];
   integratori: string[];
   // Profili speciali (knowledge/08-sicurezza/regole-app.md, sezione 2)
   gravidanza: boolean;
   restrizioneLiquidi: boolean;
   disturbiAlimentari: boolean;
+  /** Consenso esplicito al trattamento dei dati sanitari (GDPR art. 9), ISO. */
+  consensoAt: string | null;
 }
 
 export interface Pasto {
@@ -39,10 +45,13 @@ export const PROFILO_VUOTO: Profilo = {
   pesoKg: null,
   altezzaCm: null,
   attivita: "moderato",
+  obiettivo: "benessere",
+  condizioni: [],
   integratori: [],
   gravidanza: false,
   restrizioneLiquidi: false,
   disturbiAlimentari: false,
+  consensoAt: null,
 };
 
 export function giornoVuoto(data: string): GiornoDiario {

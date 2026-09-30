@@ -10,6 +10,7 @@ const VOCI = [
 
 export function Navigazione() {
   const path = usePathname();
+  if (path === "/benvenuto") return null;
   return (
     <nav className="flex gap-1 text-sm">
       {VOCI.map((v) => (
