@@ -21,11 +21,23 @@ export interface Profilo {
   consensoAt: string | null;
 }
 
+import type { Nutrienti } from "./nutrienti";
+
+/** Un alimento riconosciuto in un pasto, con i valori per 100 g. */
+export interface VoceAlimento {
+  nome: string;
+  grammi: number;
+  /** Id nella tabella alimenti; null quando i valori sono stimati dall'AI. */
+  idTabella: string | null;
+  per100: Nutrienti;
+}
+
 export interface Pasto {
   id: string;
   ora: string;
   descrizione: string;
   kcal: number | null;
+  alimenti?: VoceAlimento[];
 }
 
 export interface GiornoDiario {

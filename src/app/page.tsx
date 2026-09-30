@@ -2,10 +2,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { FotoPasto } from "@/components/FotoPasto";
 import { Barra, Scheda } from "@/components/Scheda";
+import { TabellaNutrienti } from "@/components/TabellaNutrienti";
 import { oggiISO, useDiario, useProfilo } from "@/lib/archivio";
 import { MINUTI_ATTIVITA_GIORNO, benvenutoCompletato, fabbisognoKcal, obiettivoAcquaMl, obiettivoPassi, proteineG } from "@/lib/calcoli";
 import { SEGNALI_ALLARME, consigliDelGiorno } from "@/lib/consigli";
+import { perGrammi, somma } from "@/lib/nutrienti";
+import type { VoceAlimento } from "@/lib/types";
 
 function numero(v: string): number | null {
   const n = Number(v.replace(",", "."));
@@ -34,6 +38,17 @@ export default function Oggi() {
   const passi = obiettivoPassi(profilo);
   const consigli = consigliDelGiorno(profilo, g);
   const kcalOggi = g.pasti.reduce((s, p) => s + (p.kcal ?? 0), 0);
+  const vociOggi = g.pasti.flatMap((p) => p.alimenti ?? []);
+  const nutrientiOggi = somma(vociOggi.map((v) => perGrammi(v.per100, v.grammi)));
+
+  const salvaPastoFoto = (descrizione: string, voci: VoceAlimento[]) => {
+    const ora = new Date().toTimeString().slice(0, 5);
+    const kcalPasto = Math.round(somma(voci.map((v) => perGrammi(v.per100, v.grammi))).kcal);
+    aggiorna(data, (d) => ({
+      ...d,
+      pasti: [...d.pasti, { id: crypto.randomUUID(), ora, descrizione, kcal: kcalPasto, alimenti: voci }],
+    }));
+  };
 
   const aggiungiPasto = (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,12 +141,20 @@ export default function Oggi() {
         <ul className="mb-3 flex flex-col gap-1 text-sm">
           {g.pasti.map((p) => (
             <li key={p.id} className="flex items-center justify-between gap-2">
-              <span><span className="text-muted">{p.ora}</span> {p.descrizione}{kcal && p.kcal ? ` · ${p.kcal} kcal` : ""}</span>
+              <span>
+                <span className="text-muted">{p.ora}</span> {p.descrizione}{kcal && p.kcal ? ` · ${p.kcal} kcal` : ""}
+                {p.alimenti && (
+                  <span className="block text-xs text-muted">{p.alimenti.map((a) => `${a.nome} ${a.grammi} g`).join(", ")}</span>
+                )}
+              </span>
               <button aria-label="Elimina" onClick={() => aggiorna(data, (d) => ({ ...d, pasti: d.pasti.filter((x) => x.id !== p.id) }))}
                 className="text-muted">×</button>
             </li>
           ))}
         </ul>
+        <div className="mb-3">
+          <FotoPasto mostraKcal={kcal !== null} onSalva={salvaPastoFoto} />
+        </div>
         <form onSubmit={aggiungiPasto} className="flex gap-2">
           <input placeholder="Cosa hai mangiato?" value={pasto.descrizione}
             onChange={(e) => setPasto({ ...pasto, descrizione: e.target.value })} />
@@ -142,6 +165,15 @@ export default function Oggi() {
           <button className="rounded-lg bg-accent px-4 text-sm font-medium text-white">Aggiungi</button>
         </form>
       </Scheda>
+
+      {vociOggi.length > 0 && (
+        <Scheda titolo="Nutrienti di oggi">
+          <TabellaNutrienti totale={nutrientiOggi} kcalObiettivo={kcal} proteineObiettivo={proteine} />
+          {g.pasti.some((p) => !p.alimenti) && (
+            <p className="mt-2 text-xs text-muted">Conta solo i pasti fotografati.</p>
+          )}
+        </Scheda>
+      )}
 
       <Scheda titolo="Sonno">
         <label className="text-sm">
